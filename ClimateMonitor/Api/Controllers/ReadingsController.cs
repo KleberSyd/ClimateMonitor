@@ -6,19 +6,11 @@ namespace ClimateMonitor.Api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class ReadingsController : ControllerBase
+public class ReadingsController(
+    DeviceSecretValidatorService secretValidator,
+    AlertService alertService)
+    : ControllerBase
 {
-    private readonly DeviceSecretValidatorService _secretValidator;
-    private readonly AlertService _alertService;
-
-    public ReadingsController(
-        DeviceSecretValidatorService secretValidator, 
-        AlertService alertService)
-    {
-        _secretValidator = secretValidator;
-        _alertService = alertService;
-    }
-
     /// <summary>
     /// Evaluate a sensor readings from a device and return possible alerts.
     /// </summary>
@@ -37,13 +29,13 @@ public class ReadingsController : ControllerBase
         [FromHeader(Name = "x-device-shared-secret")] string deviceSecret,
         [FromBody] DeviceReadingRequest deviceReadingRequest)
     {
-        if (!_secretValidator.ValidateDeviceSecret(deviceSecret))
+        if (!secretValidator.ValidateDeviceSecret(deviceSecret))
         {
             return Problem(
                 detail: "Device secret is not within the valid range.",
                 statusCode: StatusCodes.Status401Unauthorized);
         }
 
-        return Ok(_alertService.GetAlerts(deviceReadingRequest));
+        return Ok(alertService.GetAlerts(deviceReadingRequest));
     }
 }

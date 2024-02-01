@@ -11,12 +11,7 @@ namespace ClimateMonitor.Test;
 
 public class EvaluateReadingTests
 {
-    private readonly WebApplicationFactory<ReadingsController> _application;
-
-    public EvaluateReadingTests()
-    {
-        _application = new WebApplicationFactory<ReadingsController>();
-    }
+    private readonly WebApplicationFactory<ReadingsController> _application = new();
 
     [Theory]
     [InlineData("secret-ABC-123-XYZ-001", HttpStatusCode.OK)]
@@ -31,7 +26,7 @@ public class EvaluateReadingTests
         httpClient.DefaultRequestHeaders.Add("x-device-shared-secret", secret);
 
         var response = await httpClient.PostAsJsonAsync(
-            $"/readings/evaluate", 
+            "/readings/evaluate", 
             new DeviceReadingRequest()
             {
                 FirmwareVersion = "1.0.0",
@@ -53,7 +48,7 @@ public class EvaluateReadingTests
         httpClient.DefaultRequestHeaders.Add("x-device-shared-secret", secret);
 
         var response = await httpClient.PostAsJsonAsync(
-            $"/readings/evaluate",
+            "/readings/evaluate",
             new DeviceReadingRequest()
             {
                 FirmwareVersion = firmware,
@@ -77,7 +72,7 @@ public class EvaluateReadingTests
         httpClient.DefaultRequestHeaders.Add("x-device-shared-secret", secret);
 
         var response = await httpClient.PostAsJsonAsync(
-            $"/readings/evaluate",
+            "/readings/evaluate",
             new DeviceReadingRequest()
             {
                 FirmwareVersion = firmware,
@@ -88,17 +83,17 @@ public class EvaluateReadingTests
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         try
         {
-            var expectedError = "The firmware value does not match semantic versioning format.";
+            const string expectedError = "The firmware value does not match semantic versioning format.";
 
             var problemDetails = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
             
             if (problemDetails?.Errors.ContainsKey("FirmwareVersion") == true)
             {
-                Assert.Equal(expectedError, problemDetails?.Errors["FirmwareVersion"].FirstOrDefault());
+                Assert.Equal(expectedError, problemDetails.Errors["FirmwareVersion"].FirstOrDefault());
             }
             else
             {
-                throw new XunitException($"Expected a valid response with same structure as `ValidationProblemDetails` DTO for the FirmwareVersion field, but received something else.");
+                throw new XunitException("Expected a valid response with same structure as `ValidationProblemDetails` DTO for the FirmwareVersion field, but received something else.");
             }
         }
         catch (JsonException ex)
@@ -117,7 +112,7 @@ public class EvaluateReadingTests
         httpClient.DefaultRequestHeaders.Add("x-device-shared-secret", "secret-ABC-123-XYZ-001");
 
         var response = await httpClient.PostAsJsonAsync(
-            $"/readings/evaluate",
+            "/readings/evaluate",
             new DeviceReadingRequest()
             {
                 FirmwareVersion = "1.0.0",
@@ -150,7 +145,7 @@ public class EvaluateReadingTests
         httpClient.DefaultRequestHeaders.Add("x-device-shared-secret", "secret-ABC-123-XYZ-001");
 
         var response = await httpClient.PostAsJsonAsync(
-            $"/readings/evaluate",
+            "/readings/evaluate",
             new DeviceReadingRequest()
             {
                 FirmwareVersion = "1.0.0",
@@ -182,5 +177,4 @@ public class EvaluateReadingTests
             throw new XunitException($"Expected a valid JSON response with same structure as array of `Alert` DTO, but received something else. {ex.Message}");
         }
     }
-    
 }
